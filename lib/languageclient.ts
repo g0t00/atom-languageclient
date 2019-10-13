@@ -18,6 +18,8 @@ export interface KnownNotifications {
 }
 
 export interface KnownRequests {
+  'workspace/workspaceFolders':
+  [null, lsp.WorkspaceFolder[]];
   'window/showMessageRequest':
   [lsp.ShowMessageRequestParams, lsp.MessageActionItem | null];
   'workspace/applyEdit':
@@ -168,7 +170,9 @@ export class LanguageClientConnection extends EventEmitter {
   public onTelemetryEvent(callback: (...args: any[]) => void): void {
     this._onNotification({ method: 'telemetry/event' }, callback);
   }
-
+  public onWorkspaceFolders(callback: (...args: any[]) => Promise<lsp.WorkspaceFolder[]>): void {
+    this._onRequest({ method: 'workspace/workspaceFolders'}, callback);
+  }
   /**
    * Public: Register a callback for the `workspace/applyEdit` message.
    *

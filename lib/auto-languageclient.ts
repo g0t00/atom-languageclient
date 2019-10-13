@@ -23,6 +23,8 @@ import SignatureHelpAdapter from './adapters/signature-help-adapter';
 import * as Utils from './utils';
 import { Socket } from 'net';
 import { LanguageClientConnection } from './languageclient';
+import * as lsp from 'vscode-languageserver-protocol';
+
 import {
   ConsoleLogger,
   FilteredLogger,
@@ -130,7 +132,7 @@ export default class AutoLanguageClient {
           workspaceEdit: {
             documentChanges: true,
           },
-          workspaceFolders: false,
+          workspaceFolders: true,
           didChangeConfiguration: {
             dynamicRegistration: false,
           },
@@ -306,6 +308,12 @@ export default class AutoLanguageClient {
     this.captureServerErrors(process, projectPath);
     const connection = new LanguageClientConnection(this.createRpcConnection(process), this.logger);
     this.preInitialization(connection);
+    connection.onWorkspaceFolders(async () => {
+      return atom.project.getDirectories().map((directory) => {
+        const folder: lsp.WorkspaceFolder = {name: directory.getBaseName(), uri: directory.getPath()};
+        return folder;
+      });
+    });
     const initializeParams = this.getInitializeParams(projectPath, process);
     const initialization = connection.initialize(initializeParams);
     this.reportBusyWhile(
